@@ -4,8 +4,8 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 
 ## Conventions
 
-- **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
-- **Read an issue**: `gh issue view <number> --comments`, filtering comments by `jq` and also fetching labels.
+- **Create an issue**: write the body to a file in the scratchpad with the Write tool, then `gh issue create --title "..." --body-file <path>`. Shell quoting of multi-line bodies breaks on Windows; `--body-file` works the same on every shell. The same goes for `gh issue comment`, `gh pr create` and `gh pr edit`.
+- **Read an issue**: `gh issue view <number> --json title,body,labels,comments`. Plain `gh issue view <number> --comments` can print nothing, body included.
 - **List issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with appropriate `--label` and `--state` filters.
 - **Comment on an issue**: `gh issue comment <number> --body "..."`
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
@@ -31,7 +31,7 @@ Create a GitHub issue.
 
 ## When a skill says "fetch the relevant ticket"
 
-Run `gh issue view <number> --comments`.
+Run `gh issue view <number> --json title,body,labels,comments`.
 
 ## Wayfinding operations
 
