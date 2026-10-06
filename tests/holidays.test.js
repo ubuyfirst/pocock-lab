@@ -18,6 +18,7 @@ test("holidayReport covers the day before, the Holiday and the day after, with n
       date: "2026-07-15",
       weekday: "Wednesday",
       percentVsNormal: null,
+      cities: ["Boston"],
       days: [
         { date: "2026-07-14", weekday: "Tuesday", position: "before", cities: [{ city: "Boston", rides: 100, ...noNormalDays }] },
         { date: "2026-07-15", weekday: "Wednesday", position: "holiday", cities: [{ city: "Boston", rides: 90, ...noNormalDays }] },
@@ -67,8 +68,11 @@ test("holidayReport sorts cities by name and treats the ends of the Normal range
     // On the Holiday Miami sits on its low end and Boston on its high end.
     { date: "2026-07-15", city: "Miami", rides: 100 },
     { date: "2026-07-15", city: "Boston", rides: 120 },
+    // Denver only has a row on the day after.
+    { date: "2026-07-16", city: "Denver", rides: 60 },
   ];
   const [report] = holidayReport(rows, [testDay]);
+  assert.deepEqual(report.cities, ["Boston", "Denver", "Miami"]);
   assert.deepEqual(report.days[1].cities, [
     { city: "Boston", rides: 120, normalLow: 80, normalHigh: 120, normalAverage: 100, percentVsNormal: 20, unusual: false },
     { city: "Miami", rides: 100, normalLow: 100, normalHigh: 300, normalAverage: 200, percentVsNormal: -50, unusual: false },
@@ -76,15 +80,23 @@ test("holidayReport sorts cities by name and treats the ends of the Normal range
 });
 
 test("holidayReport leaves every Holiday window out of the Normal days, not only the Holiday's own", () => {
-  // 2026-07-29 is another Wednesday Holiday, so its busy 500 is not a Normal day.
-  const otherDay = { name: "Other Day", date: "2026-07-29" };
+  // Other Holidays put Wednesdays in their windows: the day before Thursday
+  // 2026-07-23, the day after Tuesday 2026-07-28, and Wednesday 2026-08-05
+  // itself. None of their busy 500s is a Normal day.
+  const otherHolidays = [
+    { name: "Thursday Holiday", date: "2026-07-23" },
+    { name: "Tuesday Holiday", date: "2026-07-28" },
+    { name: "Wednesday Holiday", date: "2026-08-05" },
+  ];
   const rows = [
     { date: "2026-07-01", city: "Boston", rides: 100 },
     { date: "2026-07-08", city: "Boston", rides: 100 },
+    { date: "2026-07-22", city: "Boston", rides: 500 },
     { date: "2026-07-29", city: "Boston", rides: 500 },
+    { date: "2026-08-05", city: "Boston", rides: 500 },
     { date: "2026-07-15", city: "Boston", rides: 110 },
   ];
-  const [report] = holidayReport(rows, [testDay, otherDay]);
+  const [report] = holidayReport(rows, [testDay, ...otherHolidays]);
   assert.deepEqual(report.days[1].cities, [
     { city: "Boston", rides: 110, normalLow: 100, normalHigh: 100, normalAverage: 100, percentVsNormal: 10, unusual: true },
   ]);
@@ -157,5 +169,15 @@ test("holidaySummary says 'in line with' when a window rounds to 0% and uses the
     "Across the Other Day window (Tuesday, July 14 to Thursday, July 16), rides were in line with the Normal average for those days of the week.",
     "No city had an Unusual day around Other Day.",
     "Overall, 1 of 3 city-days in the Holiday windows was an Unusual day.",
+  ]);
+});
+
+test("holidaySummary says when a Holiday window has no Normal days to compare with", () => {
+  const noNormalDays = { normalLow: null, normalHigh: null, normalAverage: null, percentVsNormal: null, unusual: false };
+  const report = [reportedHoliday("Test Day", null, [[{ city: "Boston", rides: 100, ...noNormalDays }], [], []])];
+  assert.deepEqual(holidaySummary(report), [
+    "There were no Normal days to compare the Test Day window (Tuesday, July 14 to Thursday, July 16) with.",
+    "No city had an Unusual day around Test Day.",
+    "Overall, 0 of 1 city-days in the Holiday windows were Unusual days.",
   ]);
 });

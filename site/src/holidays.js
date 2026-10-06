@@ -2,7 +2,7 @@
 // its Normal days. Terms (Holiday window, Normal range, ...) are in GLOSSARY.md.
 import { weekdayName } from "./stats.js";
 
-// The only Holidays the dashboard reports on; every other date is a normal date.
+// The only Holidays the dashboard reports on; no other date is a Holiday.
 export const HOLIDAYS = [
   { name: "July 4th", date: "2026-07-04" },
   { name: "Labor Day", date: "2026-09-07" },
@@ -11,12 +11,13 @@ export const HOLIDAYS = [
 const POSITIONS = ["before", "holiday", "after"];
 
 // One entry per Holiday: each city's rides on each date of its Holiday window,
-// against that city's Normal range and Normal average for the same weekday.
+// against that city's Normal range and Normal average for the same weekday,
+// plus the sorted names of every city with a row in the window.
 export function holidayReport(rows, holidays) {
   const windows = holidays.map((holiday) => holidayWindow(holiday.date));
   const normalRides = ridesOnNormalDays(rows, new Set(windows.flat()));
-  return holidays.map((holiday, h) => {
-    const days = windows[h].map((date, i) => ({
+  return holidays.map((holiday, windowIndex) => {
+    const days = windows[windowIndex].map((date, i) => ({
       date,
       weekday: weekdayName(date),
       position: POSITIONS[i],
@@ -32,6 +33,7 @@ export function holidayReport(rows, holidays) {
       date: holiday.date,
       weekday: weekdayName(holiday.date),
       percentVsNormal: windowPercentVsNormal(days),
+      cities: [...new Set(days.flatMap((day) => day.cities.map((c) => c.city)))].sort(),
       days,
     };
   });
@@ -53,13 +55,13 @@ function normalKey(city, date) {
   return `${city}|${weekdayName(date)}`;
 }
 
-function compareWithNormal(city, rides, normalRides = []) {
-  if (normalRides.length === 0) {
+function compareWithNormal(city, rides, sameWeekdayRides = []) {
+  if (sameWeekdayRides.length === 0) {
     return { city, rides, normalLow: null, normalHigh: null, normalAverage: null, percentVsNormal: null, unusual: false };
   }
-  const normalLow = Math.min(...normalRides);
-  const normalHigh = Math.max(...normalRides);
-  const normalAverage = normalRides.reduce((sum, r) => sum + r, 0) / normalRides.length;
+  const normalLow = Math.min(...sameWeekdayRides);
+  const normalHigh = Math.max(...sameWeekdayRides);
+  const normalAverage = sameWeekdayRides.reduce((sum, r) => sum + r, 0) / sameWeekdayRides.length;
   return {
     city,
     rides,
@@ -101,9 +103,11 @@ export function holidaySummary(report) {
   const sentences = [];
   for (const holiday of report) {
     const [first, , last] = holiday.days;
+    const windowText = `the ${holiday.name} window (${longDate(first)} to ${longDate(last)})`;
     sentences.push(
-      `Across the ${holiday.name} window (${longDate(first)} to ${longDate(last)}), ` +
-        `rides were ${comparedWithNormal(holiday.percentVsNormal)} for those days of the week.`,
+      holiday.percentVsNormal === null
+        ? `There were no Normal days to compare ${windowText} with.`
+        : `Across ${windowText}, rides were ${percentPhrase(holiday.percentVsNormal)} for those days of the week.`,
     );
     const unusual = holiday.days.flatMap((day) =>
       day.cities.filter((c) => c.unusual).map((c) => unusualDaySentence(holiday, day, c)),
@@ -120,7 +124,7 @@ export function holidaySummary(report) {
 }
 
 // "3% above the Normal average", rounded to a whole percent.
-function comparedWithNormal(percentVsNormal) {
+function percentPhrase(percentVsNormal) {
   const percent = Math.round(percentVsNormal);
   if (percent === 0) return "in line with the Normal average";
   return `${Math.abs(percent)}% ${percent > 0 ? "above" : "below"} the Normal average`;

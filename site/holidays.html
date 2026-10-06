@@ -55,11 +55,10 @@
     for (const holiday of report) {
       const section = document.createElement("section");
       const heading = formatDate(holiday.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-      const cities = [...new Set(holiday.days.flatMap((day) => day.cities.map((c) => c.city)))].sort();
       const header = holiday.days
         .map((day) => `<th scope="col">${formatDate(day.date, { weekday: "short", month: "short", day: "numeric" })}<span class="note">${POSITION_LABELS[day.position]}</span></th>`)
         .join("");
-      const body = cities
+      const body = holiday.cities
         .map((city) => {
           const cells = holiday.days.map((day) => {
             const c = day.cities.find((entry) => entry.city === city);
