@@ -30,14 +30,14 @@
   <script type="module">
     import { parseCsv } from "./src/csv.js";
     import { totalRides, ridesByCity, averageRidesByWeekday } from "./src/stats.js";
+    import { barWidths } from "./src/bars.js";
 
-    // Draw one bar per { label, value }, sized against the largest value.
+    // Draw one bar per { label, value }, sized by barWidths.
     function drawBars(chart, items, format = (value) => value.toLocaleString()) {
-      const max = Math.max(...items.map((d) => d.value));
-      for (const { label, value } of items) {
+      for (const { label, value, percent } of barWidths(items)) {
         const bar = document.createElement("div");
         bar.className = "bar";
-        bar.style.width = `${(value / max) * 100}%`;
+        bar.style.width = `${percent}%`;
         bar.textContent = `${label} ${format(value)}`;
         chart.appendChild(bar);
       }
