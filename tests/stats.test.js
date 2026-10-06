@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { totalRides, ridesByCity, averageRidesByWeekday } from "../site/src/stats.js";
+import { totalRides, ridesByCity, averageRidesByWeekday, weekdayName } from "../site/src/stats.js";
 
 const rows = [
   { date: "2026-07-01", city: "Miami", rides: "10" },
@@ -57,4 +57,9 @@ test("averageRidesByWeekday averages over every city-day row, not combined daily
     { date: "2026-07-13", city: "Boston", rides: "60" },
   ]);
   assert.deepEqual(result[0], { weekday: "Monday", rides: 30 });
+});
+
+test("weekdayName gives the calendar weekday of a YYYY-MM-DD date", () => {
+  assert.equal(weekdayName("2026-07-04"), "Saturday");
+  assert.equal(weekdayName("2026-09-07"), "Monday");
 });

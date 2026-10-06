@@ -32,6 +32,11 @@ export function averageRidesByWeekday(rows) {
   }));
 }
 
+// Full English weekday of a YYYY-MM-DD date, e.g. "Saturday" for 2026-07-04.
+export function weekdayName(date) {
+  return WEEKDAYS[weekdayIndex(date)];
+}
+
 // 0 for Monday through 6 for Sunday. The YYYY-MM-DD date is read as UTC so
 // the viewer's time zone can't shift it onto a neighbouring day.
 function weekdayIndex(date) {
