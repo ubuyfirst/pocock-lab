@@ -22,10 +22,26 @@
       </table>
       <div id="chart" class="bars" role="img" aria-label="Bar chart of rides by city"></div>
     </section>
+    <section>
+      <h2>Average rides by day of the week</h2>
+      <div id="weekday-chart" class="bars" role="img" aria-label="Bar chart of average rides per city on each day of the week, Monday to Sunday"></div>
+    </section>
   </main>
   <script type="module">
     import { parseCsv } from "./src/csv.js";
-    import { totalRides, ridesByCity } from "./src/stats.js";
+    import { totalRides, ridesByCity, averageRidesByWeekday } from "./src/stats.js";
+
+    // Draw one bar per { label, value }, sized against the largest value.
+    function drawBars(chart, items, format = (value) => value.toLocaleString()) {
+      const max = Math.max(...items.map((d) => d.value));
+      for (const { label, value } of items) {
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.width = `${(value / max) * 100}%`;
+        bar.textContent = `${label} ${format(value)}`;
+        chart.appendChild(bar);
+      }
+    }
 
     const response = await fetch("./data/rides.csv");
     const rows = parseCsv(await response.text());
@@ -35,19 +51,20 @@
       `Total rides: ${totalRides(rows).toLocaleString()}`;
 
     const tbody = document.querySelector("#by-city tbody");
-    const chart = document.getElementById("chart");
-    const max = Math.max(...byCity.map((d) => d.rides));
     for (const { city, rides } of byCity) {
       const tr = document.createElement("tr");
       tr.innerHTML = `<td>${city}</td><td>${rides.toLocaleString()}</td>`;
       tbody.appendChild(tr);
-
-      const bar = document.createElement("div");
-      bar.className = "bar";
-      bar.style.width = `${(rides / max) * 100}%`;
-      bar.textContent = `${city} ${rides.toLocaleString()}`;
-      chart.appendChild(bar);
     }
+    drawBars(
+      document.getElementById("chart"),
+      byCity.map(({ city, rides }) => ({ label: city, value: rides })),
+    );
+    drawBars(
+      document.getElementById("weekday-chart"),
+      averageRidesByWeekday(rows).map(({ weekday, rides }) => ({ label: weekday, value: rides })),
+      (value) => value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+    );
   </script>
 </body>
 </html>
