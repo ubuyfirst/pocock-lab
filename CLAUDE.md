@@ -7,7 +7,7 @@ modules; deploys to GitHub Pages on every push to `main`.
 
 - Test: `npm test` (Node's built-in runner; tests live in `tests/*.test.js`)
 - Serve locally: `npm start` -> http://localhost:8080
-- There is no typecheck or linter, so `/implement`'s typecheck step means `npm test`, the whole local check. CI also runs it in two non-UTC time zones, since `TZ` has no effect on Windows.
+- There is no typecheck or linter, so `/implement`'s typecheck step means `npm test`, the whole local check.
 
 ## Layout
 
