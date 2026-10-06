@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Holiday report</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header>
+    <h1>Holiday report</h1>
+    <nav><a href="./index.html">Home</a><a href="./holidays.html">Holidays</a></nav>
+  </header>
+  <main>
+    <p>Rides around the two Holidays in the data, July 4th and Labor Day, for the day before, the Holiday and the day after. Each figure is compared with the same city on Normal days (dates outside both Holiday windows) that fall on the same day of the week: its Normal range, and how far it was from its Normal average. Figures outside the Normal range are marked as an Unusual day.</p>
+    <p id="status" aria-live="polite">Loading data&hellip;</p>
+    <section>
+      <h2>Summary of findings</h2>
+      <ul id="summary"></ul>
+    </section>
+    <div id="holidays"></div>
+  </main>
+  <script type="module">
+    import { parseCsv } from "./src/csv.js";
+    import { HOLIDAYS, holidayReport, holidaySummary } from "./src/holidays.js";
+
+    const POSITION_LABELS = { before: "Day before", holiday: "Holiday", after: "Day after" };
+    const formatDate = (date, options) =>
+      new Date(`${date}T00:00:00Z`).toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
+    const formatPercent = (percent) =>
+      (percent / 100).toLocaleString("en-US", { style: "percent", signDisplay: "exceptZero", maximumFractionDigits: 0 });
+
+    function cellHtml(c) {
+      if (c.normalAverage === null) {
+        return `<strong>${c.rides.toLocaleString()}</strong><span class="note">No Normal days to compare</span>`;
+      }
+      return `<strong>${c.rides.toLocaleString()}</strong>` +
+        `<span class="note">Normal ${c.normalLow}&ndash;${c.normalHigh}</span>` +
+        `<span class="note">${formatPercent(c.percentVsNormal)} vs average</span>` +
+        (c.unusual ? `<span class="flag">Unusual day</span>` : "");
+    }
+
+    const response = await fetch("./data/rides.csv");
+    const rows = parseCsv(await response.text());
+    const report = holidayReport(rows, HOLIDAYS);
+
+    const summary = document.getElementById("summary");
+    for (const sentence of holidaySummary(report)) {
+      const li = document.createElement("li");
+      li.textContent = sentence;
+      summary.appendChild(li);
+    }
+
+    const container = document.getElementById("holidays");
+    for (const holiday of report) {
+      const section = document.createElement("section");
+      const heading = formatDate(holiday.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+      const header = holiday.days
+        .map((day) => `<th scope="col">${formatDate(day.date, { weekday: "short", month: "short", day: "numeric" })}<span class="note">${POSITION_LABELS[day.position]}</span></th>`)
+        .join("");
+      const body = holiday.cities
+        .map((city) => {
+          const cells = holiday.days.map((day) => {
+            const c = day.cities.find((entry) => entry.city === city);
+            if (!c) return `<td>&mdash;</td>`;
+            return `<td${c.unusual ? ` class="unusual"` : ""}>${cellHtml(c)}</td>`;
+          });
+          return `<tr><th scope="row">${city}</th>${cells.join("")}</tr>`;
+        })
+        .join("");
+      section.innerHTML =
+        `<h2>${holiday.name} <small>(${heading})</small></h2>` +
+        `<div class="table-scroll"><table class="holiday-window"><caption>Rides by city across the ${holiday.name} Holiday window</caption>` +
+        `<thead><tr><th scope="col">City</th>${header}</tr></thead><tbody>${body}</tbody></table></div>`;
+      container.appendChild(section);
+    }
+    document.getElementById("status").remove();
+  </script>
+</body>
+</html>

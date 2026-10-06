@@ -7,3 +7,8 @@ th, td { border: 1px solid #d0d0d0; padding: 0.3rem 0.8rem; text-align: left; }
 th { background: #f2f2f2; }
 .bars { display: flex; flex-direction: column; gap: 0.4rem; margin: 1rem 0; }
 .bar { background: #028090; color: #ffffff; padding: 0.3rem 0.6rem; border-radius: 3px; white-space: nowrap; min-width: 6rem; }
+caption { text-align: left; font-weight: 600; margin-bottom: 0.3rem; }
+.note { display: block; font-size: 0.85em; color: #555555; white-space: nowrap; }
+.table-scroll { overflow-x: auto; }
+.unusual { background: #fff1d6; }
+.flag { display: block; font-size: 0.85em; font-weight: 600; color: #8a4b00; }
