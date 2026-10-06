@@ -93,3 +93,53 @@ function holidayWindow(date) {
     return day.toISOString().slice(0, 10);
   });
 }
+
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+// Plain-English findings from holidayReport's output, one sentence per entry.
+export function holidaySummary(report) {
+  const sentences = [];
+  for (const holiday of report) {
+    const [first, , last] = holiday.days;
+    sentences.push(
+      `Across the ${holiday.name} window (${longDate(first)} to ${longDate(last)}), ` +
+        `rides were ${comparedWithNormal(holiday.percentVsNormal)} for those days of the week.`,
+    );
+    const unusual = holiday.days.flatMap((day) =>
+      day.cities.filter((c) => c.unusual).map((c) => unusualDaySentence(holiday, day, c)),
+    );
+    sentences.push(...(unusual.length > 0 ? unusual : [`No city had an Unusual day around ${holiday.name}.`]));
+  }
+  const cityDays = report.flatMap((holiday) => holiday.days.flatMap((day) => day.cities));
+  const unusualCount = cityDays.filter((c) => c.unusual).length;
+  sentences.push(
+    `Overall, ${unusualCount} of ${cityDays.length} city-days in the Holiday windows ` +
+      (unusualCount === 1 ? "was an Unusual day." : "were Unusual days."),
+  );
+  return sentences;
+}
+
+// "3% above the Normal average", rounded to a whole percent.
+function comparedWithNormal(percentVsNormal) {
+  const percent = Math.round(percentVsNormal);
+  if (percent === 0) return "in line with the Normal average";
+  return `${Math.abs(percent)}% ${percent > 0 ? "above" : "below"} the Normal average`;
+}
+
+function unusualDaySentence(holiday, day, c) {
+  const when = {
+    before: `the day before ${holiday.name}`,
+    holiday: `${holiday.name} itself`,
+    after: `the day after ${holiday.name}`,
+  }[day.position];
+  return (
+    `${c.city} had an Unusual day on ${longDate(day)}, ${when}: ${c.rides} rides, ` +
+    `${c.rides > c.normalHigh ? "above" : "below"} its ${day.weekday} Normal range of ${c.normalLow}–${c.normalHigh}.`
+  );
+}
+
+// "Tuesday, July 14", read straight from the YYYY-MM-DD date.
+function longDate(day) {
+  const [, month, date] = day.date.split("-").map(Number);
+  return `${day.weekday}, ${MONTHS[month - 1]} ${date}`;
+}

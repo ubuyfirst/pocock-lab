@@ -14,11 +14,15 @@
   <main>
     <p>Rides around the two Holidays in the data, July 4th and Labor Day, for the day before, the Holiday and the day after. Each figure is compared with the same city on Normal days (dates outside both Holiday windows) that fall on the same day of the week: its Normal range, and how far it was from its Normal average. Figures outside the Normal range are marked as an Unusual day.</p>
     <p id="status" aria-live="polite">Loading data&hellip;</p>
+    <section>
+      <h2>Summary of findings</h2>
+      <ul id="summary"></ul>
+    </section>
     <div id="holidays"></div>
   </main>
   <script type="module">
     import { parseCsv } from "./src/csv.js";
-    import { HOLIDAYS, holidayReport } from "./src/holidays.js";
+    import { HOLIDAYS, holidayReport, holidaySummary } from "./src/holidays.js";
 
     const POSITION_LABELS = { before: "Day before", holiday: "Holiday", after: "Day after" };
     const formatDate = (date, options) =>
@@ -39,6 +43,13 @@
     const response = await fetch("./data/rides.csv");
     const rows = parseCsv(await response.text());
     const report = holidayReport(rows, HOLIDAYS);
+
+    const summary = document.getElementById("summary");
+    for (const sentence of holidaySummary(report)) {
+      const li = document.createElement("li");
+      li.textContent = sentence;
+      summary.appendChild(li);
+    }
 
     const container = document.getElementById("holidays");
     for (const holiday of report) {
