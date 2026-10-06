@@ -22,10 +22,14 @@
       </table>
       <div id="chart" class="bars" role="img" aria-label="Bar chart of rides by city"></div>
     </section>
+    <section>
+      <h2>Average rides by day of the week</h2>
+      <div id="weekday-chart" class="bars" role="img" aria-label="Bar chart of average rides per city on each day of the week, Monday to Sunday"></div>
+    </section>
   </main>
   <script type="module">
     import { parseCsv } from "./src/csv.js";
-    import { totalRides, ridesByCity } from "./src/stats.js";
+    import { totalRides, ridesByCity, averageRidesByWeekday } from "./src/stats.js";
 
     // Draw one bar per { label, value }, sized against the largest value.
     function drawBars(chart, items, format = (value) => value.toLocaleString()) {
@@ -55,6 +59,11 @@
     drawBars(
       document.getElementById("chart"),
       byCity.map(({ city, rides }) => ({ label: city, value: rides })),
+    );
+    drawBars(
+      document.getElementById("weekday-chart"),
+      averageRidesByWeekday(rows).map(({ weekday, rides }) => ({ label: weekday, value: rides })),
+      (value) => value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
     );
   </script>
 </body>
