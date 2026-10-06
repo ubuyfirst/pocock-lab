@@ -7,16 +7,16 @@ modules; deploys to GitHub Pages on every push to `main`.
 
 - Test: `npm test` (Node's built-in runner; tests live in `tests/*.test.js`)
 - Serve locally: `npm start` -> http://localhost:8080
-- There is no typecheck or linter: `npm test` is the whole local check. CI also runs it in two non-UTC time zones, since `TZ` has no effect on Windows.
+- There is no typecheck or linter, so `/implement`'s typecheck step means `npm test`, the whole local check. CI also runs it in two non-UTC time zones, since `TZ` has no effect on Windows.
 
 ## Layout
 
 - `site/*.html`, `site/style.css` - the pages; `index.html` is the home page and holds the nav
 - `site/src/*.js` - ES modules imported by the pages and by the tests; computation goes here
 - `site/data/rides.csv` - sample data (date, city, rides)
-- `tests/*.test.js` - one test file per module, using `node:test` and `node:assert/strict`
+- `tests/*.test.js` - one test file per module, using `node:test` and `node:assert/strict`; `docs.test.js` instead checks that README names every page and module
 - `.github/workflows/publish.yml` - runs tests on pull requests and pushes to `main`; a push to `main` also deploys `site/` to Pages
-- `docs/agents/*.md` - configuration the skills read (see Agent skills below)
+- `docs/agents/*.md` - configuration the skills read (see Agent skills below), plus the lab brief
 - `CODING_STANDARDS.md` - how `/code-review` judges the Conventions below
 
 ## Conventions
