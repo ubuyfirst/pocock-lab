@@ -33,14 +33,15 @@ npm start      # serves site/ at http://localhost:8080 (Ctrl+C to stop)
 | Path | What it is |
 |---|---|
 | `site/index.html`, `site/holidays.html`, `site/style.css` | The pages: the dashboard home and the Holiday report. Paths are relative so the site works under a GitHub Pages subpath. |
-| `site/src/csv.js`, `site/src/stats.js`, `site/src/holidays.js` | ES modules used by the pages and by the tests. Computation lives here. |
+| `site/src/csv.js`, `site/src/stats.js`, `site/src/holidays.js`, `site/src/bars.js` | ES modules used by the pages and by the tests. Computation lives here, chart geometry included. |
 | `site/data/rides.csv` | Sample data: daily ride counts for three cities, July-September 2026. |
 | `tests/*.test.js` | Tests, run by Node's built-in test runner. |
 | `scripts/serve.js` | Zero-dependency local static server. |
 | `.github/workflows/publish.yml` | Runs the tests on every pull request and push to `main`; a push to `main` also deploys `site/` to GitHub Pages. |
 | `CLAUDE.md` | Context for Claude Code. |
+| `CODING_STANDARDS.md` | The rules `/code-review` checks a diff against. |
 | `FEATURE.md` | The one-sentence feature you will build in the lab. |
-| `docs/agents/` | Configuration the skills read: the issue tracker, the triage labels, and where domain docs live. |
+| `docs/agents/` | Configuration the skills read: the issue tracker, the triage labels, where domain docs live, and the lab brief. |
 
 `/grill-with-docs` adds `GLOSSARY.md` and `docs/adr/` at the repo root as terms and
 decisions get settled.
