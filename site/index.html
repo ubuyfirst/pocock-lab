@@ -27,6 +27,18 @@
     import { parseCsv } from "./src/csv.js";
     import { totalRides, ridesByCity } from "./src/stats.js";
 
+    // Draw one bar per { label, value }, sized against the largest value.
+    function drawBars(chart, items, format = (value) => value.toLocaleString()) {
+      const max = Math.max(...items.map((d) => d.value));
+      for (const { label, value } of items) {
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.width = `${(value / max) * 100}%`;
+        bar.textContent = `${label} ${format(value)}`;
+        chart.appendChild(bar);
+      }
+    }
+
     const response = await fetch("./data/rides.csv");
     const rows = parseCsv(await response.text());
     const byCity = ridesByCity(rows);
@@ -35,19 +47,15 @@
       `Total rides: ${totalRides(rows).toLocaleString()}`;
 
     const tbody = document.querySelector("#by-city tbody");
-    const chart = document.getElementById("chart");
-    const max = Math.max(...byCity.map((d) => d.rides));
     for (const { city, rides } of byCity) {
       const tr = document.createElement("tr");
       tr.innerHTML = `<td>${city}</td><td>${rides.toLocaleString()}</td>`;
       tbody.appendChild(tr);
-
-      const bar = document.createElement("div");
-      bar.className = "bar";
-      bar.style.width = `${(rides / max) * 100}%`;
-      bar.textContent = `${city} ${rides.toLocaleString()}`;
-      chart.appendChild(bar);
     }
+    drawBars(
+      document.getElementById("chart"),
+      byCity.map(({ city, rides }) => ({ label: city, value: rides })),
+    );
   </script>
 </body>
 </html>
